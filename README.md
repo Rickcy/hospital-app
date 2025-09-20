@@ -1,6 +1,3 @@
-# Gerimedica Assignment
-
-Welcome to this **Gerimedica** repository. This is a **Spring Boot** project built for an **assignment**. The code, while functional, **is not production-ready** and **may contain questionable or non-ideal implementations**. Part of the challenge is to **discover**, **review**, and **improve** these elements.
 
 ---
 
