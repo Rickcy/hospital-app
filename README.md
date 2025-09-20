@@ -1,43 +1,74 @@
-# Gerimedica Assignment
+config.CacheConfig
+Fixed: Introduced a dedicated config instead of implicit/no caching.
 
-Welcome to this **Gerimedica** repository. This is a **Spring Boot** project built for an **assignment**. The code, while functional, **is not production-ready** and **may contain questionable or non-ideal implementations**. Part of the challenge is to **discover**, **review**, and **improve** these elements.
+config.OpenApiConfig
+Fixed: Added structured API docs where there were none.
 
----
+domain.entity.Patient
+Fixed:
+Replaced public fields with encapsulated getters/setters (immutability of id).
+Added @NotBlank/@Size validations.
+Enforced unique SSN with a unique constraint and index.
+Proper equals/hashCode based on id to avoid collisions and proxy issues.
+Configured one-to-many with cascade = ALL and orphanRemoval, LAZY loading.
+Added @JsonManagedReference to avoid JSON cycles.
 
-## What to Expect
+domain.entity.Appointment
+Fixed:
+Switched date to LocalDate (type-safe vs String).
+Added @NotBlank/@NotNull and column constraints.
+Added DB index for reason to speed queries.
+Proper equals/hashCode by id.
+LAZY many-to-one with explicit foreign key naming.
+Added @JsonBackReference to prevent serialization recursion.
 
-- A **simple** REST API for managing `Patients` and their `Appointments`.
-- Multiple classes (controllers, services, entities, and repositories).
-- **Incomplete** or **inefficient** approaches to certain tasks.
+domain.repository.PatientRepository
+Fixed:
+Removed manual in-memory scanning.
+Embraced Optional for null-safety.
+Added @EntityGraph to mitigate N+1 where appropriate.
 
----
+domain.repository.AppointmentRepository
+Fixed:
+Moved reason filtering to the database (exact, case-insensitive).
+Added @EntityGraph on findAll to load patient when needed, reducing N+1.
 
-## Glossary
+exception.GlobalExceptionHandler
+Fixed:
+Unified error format with timestamp/status/message.
+Mapped common exceptions to 400/404/409/500 accordingly.
 
-Below are the primary entities you’ll find in this codebase:
+service.PatientService
+Fixed:
+Introduced @Transactional boundaries.
+Added @Cacheable/@CacheEvict for SSN lookups and updates.
+Replaced manual loops with repository queries.
+Validated DTO inputs and used mapping instead of exposing entities in controllers.
 
-1. **Patient**
-    - Represents an individual in the hospital system.
-    - Fields may include:
-        - `id`: auto-generated primary key
-        - `name`: name of the patient
-        - `ssn`: Social Security Number (used here as a unique identifier)
-        - `appointments`: a list of `Appointment` objects linked to this patient
+service.AppointmentService
+Centralized business rules (no logic in controllers).
+Batch operations use saveAll; deletion uses a safe snapshot copy.
+DB-driven queries (findByReasonIgnoreCase).
+Comparator for latest appointment by LocalDate
 
-2. **Appointment**
-    - Represents a scheduled appointment or event for a patient.
-    - Fields may include:
-        - `id`: auto-generated primary key
-        - `reason`: a textual reason for the appointment (e.g., “Checkup”)
-        - `date`: the date of the appointment
-        - `patient`: a reference to the `Patient` who owns this appointment
+HospitalService
+Fixed:
+Returns DTOs instead of entities.
+Uses PatientService.getOrCreateBySsn to avoid duplicates/races.
+Records usage via HospitalUtils.
 
----
+util.HospitalUtils
+Fixed:
+Replaced non-thread-safe static int with AtomicLong.
+Made class non-instantiable and purely static.
 
-## Goals
+web.controller.AppointmentController
+Fixed:
+Introduced DTO-based input/output.
+Proper status codes (200/204/404).
+Removed ad-hoc request formats in favor of structured JSON payload.
 
-1. **Explore the codebase**: Familiarize yourself with the structure and logic.
-2. **Identify potential issues**: Think about security, performance, maintainability, design patterns, etc.
-3. **Propose and/or implement improvements**: Refactor, rewrite, or reorganize parts of the code to showcase your approach.
-
----
+web.dto.PatientDto
+web.dto.AppointmentDto
+web.mapper.PatientMapper
+web.mapper.AppointmentMapper
